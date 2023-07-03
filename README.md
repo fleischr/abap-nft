@@ -9,7 +9,7 @@ This ABAP code example demonstrates how to use proUBC and the Provide API stack 
 ## Pre requisites (do these first before running code!)
 - Clone [proUBC](https://github.com/provideplatform/proUBC) to your SAP system
 - Activate the proubc SICF node
-- Configure the SSL certificates needed for Provide stack (see certificates directory of the proUBC repo)
+- In transaction code STRUST, configure the SSL certificates needed for Provide stack (see certificates directory of the proUBC repo)
 - Create an account at https://shuttle.provide.services. Create organization at minimum (workgroup creation is recommended but optional)
 
 ## Configuration
@@ -35,6 +35,7 @@ Steps 7 an 8 populate your Provide credentials to the SAP system.
 For these self-custody transactions, you'll need some gas tokens to complete the NFT mint transaction. Use the wallet addresses you noted earlier to request gas from the given network testnet faucet.
 
 Polygon Mumbai : https://faucet.polygon.technology 
+
 Celo Alfajores : https://faucet.celo.org/alfajores
 
 ### Additional SAP configuration
