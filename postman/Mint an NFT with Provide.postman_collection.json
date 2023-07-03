@@ -1,0 +1,896 @@
+{
+	"info": {
+		"_postman_id": "ce46212b-f2cf-4e5e-8b0e-ad304d54fcd6",
+		"name": "Mint an NFT with Provide",
+		"description": "Send and ERC-20 Token with Provide Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22975745"
+	},
+	"item": [
+		{
+			"name": "SAP",
+			"item": [
+				{
+					"name": "proUBC auth - fetch token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"X-CSRF-Token is present\", function () {\r",
+									"    pm.response.to.have.header(\"X-CSRF-Token\");\r",
+									"    var xsrf = pm.response.headers.get(\"X-CSRF-Token\");\r",
+									"    pm.collectionVariables.set(\"xcsrftoken\", xsrf);\r",
+									"    //pm.setEnvironmentVariable('xcsrftoken', \"yah\");\r",
+									"    //get X-CSRF-Token and save it to variable\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{sapuserid}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{sappassword}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "HEAD",
+						"header": [
+							{
+								"key": "X-CSRF-Token",
+								"value": "Fetch",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{sapbaseurl}}/sap/proubc/auth",
+							"host": [
+								"{{sapbaseurl}}"
+							],
+							"path": [
+								"sap",
+								"proubc",
+								"auth"
+							]
+						},
+						"description": "Given a set of SAP credentials, authenticates to SAP to retrieve an x-csrf-token. The xcsrftoken is later needed in the request header for POST and PUT REST API operations to SAP ."
+					},
+					"response": []
+				},
+				{
+					"name": "proUBC tenants create",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{sapuserid}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{sappassword}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-CSRF-Token",
+								"value": "{{xcsrftoken}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"organization_id\":\"{{mintnft_organizationid}}\", \"subject_account_id\" : \"\", \"bpi_endpoint\":\"https://baseline.provide.services\",\"ident_endpoint\":\"https://ident.provide.services\",\"refresh_token\":\"{{mintnft_refreshtoken}}\"}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{sapbaseurl}}/sap/proubc/tenants",
+							"host": [
+								"{{sapbaseurl}}"
+							],
+							"path": [
+								"sap",
+								"proubc",
+								"tenants"
+							]
+						},
+						"description": "Creates a PRVD Subject Account configuration based on the payload of data provided\n\nxcsrftoken value required in the header - refer to the proUBC auth endpoint. Note: embedded Postman test scripts store this value following a successful call to the auth endpoint."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get access token with login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"console.log(response);",
+							"",
+							"//pm.collectionVariables.set(\"eco_refreshtoken\", response.token.refresh_token), (\"user_id\", response.user.id);",
+							"pm.collectionVariables.set(\"mintnft_accesstoken\", response.token.access_token);",
+							"pm.collectionVariables.set(\"mintnft_user_id\", response.user.id);",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{shuttle_email}}\", \n    \"password\": \"{{shuttle_password}}\"\n}"
+				},
+				"url": {
+					"raw": "https://ident.provide.services/api/v1/authenticate",
+					"protocol": "https",
+					"host": [
+						"ident",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"authenticate"
+					]
+				},
+				"description": "Sends email & password to Ident. Token is retrieved and stored in environment variables as jwt_token"
+			},
+			"response": []
+		},
+		{
+			"name": "List Organizations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.collectionVariables.set(\"mintnft_organizationid\", response[0].id );\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ident.provide.services/api/v1/organizations",
+					"protocol": "https",
+					"host": [
+						"ident",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"organizations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate long-dated refresh token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.collectionVariables.set(\"mintnft_refreshtoken\", response.refresh_token );"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/json"
+					},
+					{
+						"key": "authorization",
+						"value": "bearer {{jwt_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"scope\": \"offline_access\",\n    \"organization_id\" : \"{{mintnft_organizationid}}\",\n    \"user_id\" : \"{{mintnft_user_id}}\"\n}"
+				},
+				"url": {
+					"raw": "https://ident.provide.services/api/v1/tokens",
+					"protocol": "https",
+					"host": [
+						"ident",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"tokens"
+					]
+				},
+				"description": "Returns an authorized JSON formatted JWT with an `offline-access` scoped long-term `access_token` that serves as authentication for `User`, `Organization`, and `Application` related requests. \n\nTo authorize an `Application` token, replace `organization_id` in this example with `application_id`\n\nTo authorize a `User` token, replace `organization_id` with `user_id`"
+			},
+			"response": []
+		},
+		{
+			"name": "Get access token from refresh token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.collectionVariables.set(\"mintnft_accesstoken\", response.access_token );"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_refreshtoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/json"
+					},
+					{
+						"key": "authorization",
+						"value": "bearer {{jwt_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"organization_id\": \"{{mintnft_organizationid}}\",\n    \"user_id\" : \"{{mintnft_user_id}}\"\n}"
+				},
+				"url": {
+					"raw": "https://ident.provide.services/api/v1/tokens",
+					"protocol": "https",
+					"host": [
+						"ident",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"tokens"
+					]
+				},
+				"description": "Returns an authorized JSON formatted JWT with an `offline-access` scoped long-term `access_token` that serves as authentication for `User`, `Organization`, and `Application` related requests. \n\nTo authorize an `Application` token, replace `organization_id` in this example with `application_id`\n\nTo authorize a `User` token, replace `organization_id` with `user_id`"
+			},
+			"response": []
+		},
+		{
+			"name": "List Vaults",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.collectionVariables.set(\"mintnft_uservault_id\", response[0].id );"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer {{jwt_token}}"
+					}
+				],
+				"url": {
+					"raw": "https://vault.provide.services/api/v1/vaults",
+					"protocol": "https",
+					"host": [
+						"vault",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"vaults"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Vault wallet details",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"var key_id;\r",
+							"var wallet;\r",
+							"\r",
+							"var vaultkeys = response.filter( vaultkeys => vaultkeys.spec === \"secp256k1\" );\r",
+							"\r",
+							"key_id = vaultkeys[0].id;\r",
+							"wallet = vaultkeys[0].address;\r",
+							"\r",
+							"pm.collectionVariables.set(\"mintnft_uservault_key_id\", key_id );\r",
+							"pm.collectionVariables.set(\"mintnft_uservault_wallet\", wallet);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer {{jwt_token}}"
+					}
+				],
+				"url": {
+					"raw": "https://vault.provide.services/api/v1/vaults/{{mintnft_uservault_id}}/keys",
+					"protocol": "https",
+					"host": [
+						"vault",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"vaults",
+						"{{mintnft_uservault_id}}",
+						"keys"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List wallets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"var key_id;\r",
+							"var account_id;\r",
+							"\r",
+							"key_id = pm.collectionVariables.get(\"mintnft_uservault_key_id\");\r",
+							"\r",
+							"var accounts = response.filter( accounts => accounts.key_id === key_id );\r",
+							"\r",
+							"console.log(accounts.length);\r",
+							"\r",
+							"//account_id = accounts[0].id;\r",
+							"\r",
+							"//pm.collectionVariables.set(\"senderc20_accountid\", account_id );"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://nchain.provide.services/api/v1/wallets",
+					"protocol": "https",
+					"host": [
+						"nchain",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List accounts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"var key_id;\r",
+							"var account_id;\r",
+							"\r",
+							"key_id = pm.collectionVariables.get(\"mintnft_uservault_key_id\");\r",
+							"\r",
+							"var accounts = response.filter( accounts => accounts.key_id === key_id );\r",
+							"\r",
+							"console.log(accounts.length);\r",
+							"\r",
+							"//account_id = accounts[0].id;\r",
+							"\r",
+							"//pm.collectionVariables.set(\"senderc20_accountid\", account_id );"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://nchain.provide.services/api/v1/accounts",
+					"protocol": "https",
+					"host": [
+						"nchain",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get account detail",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://nchain.provide.services/api/v1/wallets/:id/accounts",
+					"protocol": "https",
+					"host": [
+						"nchain",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallets",
+						":id",
+						"accounts"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{senderc20_accountid}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create account - Polygon Mumbai",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"network_id\": \"4251b6fd-c98d-4017-87a3-d691a77a52a7\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://nchain.provide.services/api/v1/accounts",
+					"protocol": "https",
+					"host": [
+						"nchain",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"accounts"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Untitled Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"description": "Added as a part of security scheme: bearer",
+								"key": "Authorization",
+								"value": "Bearer <token>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_id\": \"<string>\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				}
+			]
+		},
+		{
+			"name": "Create account - Celo Alfajores",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{mintnft_accesstoken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"network_id\": \"d818afb9-df2f-4e46-963a-f7b6cb7655d2\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://nchain.provide.services/api/v1/accounts",
+					"protocol": "https",
+					"host": [
+						"nchain",
+						"provide",
+						"services"
+					],
+					"path": [
+						"api",
+						"v1",
+						"accounts"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Untitled Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"description": "Added as a part of security scheme: bearer",
+								"key": "Authorization",
+								"value": "Bearer <token>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_id\": \"<string>\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "mintnft_accesstoken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_refreshtoken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_uservault_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_uservault_key_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_organizationid",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_uservault_wallet",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "mintnft_prvd_network_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "shuttle_email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "shuttle_password",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sapbaseurl",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sapuserid",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sappassword",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "xcsrftoken",
+			"value": ""
+		}
+	]
+}
