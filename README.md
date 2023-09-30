@@ -2,7 +2,7 @@
 
 Mint a NFT in SAP ABAP - using provide-abap and the Provide stack!
 
-The first-ever open source example to mint NFTs with SAP ABAP! Brought to you with love from [Ryan Fleischmann](https://github.com/fleischr) and [Provide](https://github.com/provideplatforms)
+The first-ever open source example to mint NFTs with SAP ABAP! Brought to you with love from [Ryan Fleischmann](https://github.com/fleischr) and [Provide](https://github.com/provideplatform)
 
 This ABAP code example demonstrates how to use provide-abap and the Provide API stack to mint an ERC721 NFT on a given Ethereum compatible blockchain.
 
