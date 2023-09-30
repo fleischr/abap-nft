@@ -1,15 +1,15 @@
 # abap-nft
 
-Mint a NFT in SAP ABAP - using proUBC and the Provide stack!
+Mint a NFT in SAP ABAP - using provide-abap and the Provide stack!
 
 The first-ever open source example to mint NFTs with SAP ABAP! Brought to you with love from [Ryan Fleischmann](https://github.com/fleischr) and [Provide](https://github.com/provideplatforms)
 
-This ABAP code example demonstrates how to use proUBC and the Provide API stack to mint an ERC721 NFT on a given Ethereum compatible blockchain.
+This ABAP code example demonstrates how to use provide-abap and the Provide API stack to mint an ERC721 NFT on a given Ethereum compatible blockchain.
 
 ## Pre requisites (do these first before running code!)
-- Clone [proUBC](https://github.com/provideplatform/proUBC) to your SAP system
-- Activate the proubc SICF node
-- In transaction code STRUST, configure the SSL certificates needed for Provide stack (see certificates directory of the proUBC repo)
+- Clone [provide-abap](https://github.com/provideplatform/provide-abap) to your SAP system
+- Activate the provide-abap SICF node
+- In transaction code STRUST, configure the SSL certificates needed for Provide stack (see certificates directory of the provide-abap repo)
 - Create an account at https://shuttle.provide.services. Create organization at minimum (workgroup creation is recommended but optional)
 
 ## Configuration
@@ -26,8 +26,8 @@ This ABAP code example demonstrates how to use proUBC and the Provide API stack 
 4. Get access token from refresh token
 5. Create account (Do both Polygon Mumbai and Celo Alfajores)
 6. List accounts (take note of the address field for later!)
-7. SAP / proUBC fetch token
-8. SAP / proUBC tenants create
+7. SAP / provide-abap fetch token
+8. SAP / provide-abap tenants create
 
 Steps 7 an 8 populate your Provide credentials to the SAP system. 
 
